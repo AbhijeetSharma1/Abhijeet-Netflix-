@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script>
+        module = {};
+        module.exports = function() {
+            window.onerror = function(e, t, r, a, n) {
+                o("object" == typeof i ? i : {}, void 0, {
+                    msg: e,
+                    url: t,
+                    line: r,
+                    col: a,
+                    err: n
+                })
+            };
+            var e = {
+                tags: {},
+                rules: []
+            };
+
+            function t(e, t, r) {
+                if (r) {
+                    var a = new Date;
+                    a.setTime(Date.now() + 24 * r * 60 * 60 * 1e3);
+                    var n = "; expires=" + a.toGMTString()
+                } else n = "";
+                document.cookie = "nflx_tags_" + e + "=" + t + n + "; path=/"
+            }
+
+            function r(e) {
+                for (var t = "nflx_tags_" + e + "=", r = document.cookie.split(";"), a = 0; a < r.length; a++) {
+                    for (var n = r[a];
+                        " " == n.charAt(0);) n = n.substring(1, n.length);
+                    if (0 == n.indexOf(t)) return n.substring(t.length, n.length)
+                }
+                return null
+            }
+            void 0 !== window.MOCK_NFLX_TAG_DATA && (e = window.MOCK_NFLX_TAG_DATA);
+            var a = /^https:\/\//;
+
+            function o(e, t, r) {
+                var a = JSON.stringify({
+                        appName: "android",
+                        events: [{
+                            name: "advdevtag",
+                            data: {
+                                advdevtag_type: "web",
+                                ad_vendor_sync_type: "netflix",
+                                event_type: e.referrer,
+                                user_agent: window.navigator.userAgent,
+                                tags: t,
+                                err: r,
+                                params: e,
+                                country: e.country,
+                                tagLoaderVersion: "20220113-1708"
+                            }
+                        }]
+                    }),
+                    n = new XMLHttpRequest;
+                n.withCredentials = !0, n.onload = function() {}, n.open("POST", "https://ichnaea-web.netflix.com/log", !0), n.setRequestHeader("Content-Type", "application/json"), n.setRequestHeader("X-Netflix.ichnaea.request.type", "IchnaeaRequest"), n.send(a)
+            }
+            for (var i = function(e) {
+                    var t, r, a = e.slice(1).split("&");
+                    for (r = 0; r < a.length; r++)
+                        if ((t = a[r].split("=")) && t[0] && "data" === t[0] && t[1]) return JSON.parse(decodeURIComponent(t[1])) || {};
+                    return {}
+                }(window.location.search), n = [], s = 0; s < e.rules.length; s++) {
+                (h = e.rules[s]).referrerRegex && i.referrer.match(new RegExp(h.referrerRegex, "i")) ? n.push.apply(n, h.tags) : i.referrer === h.referrer && n.push.apply(n, h.tags)
+            }
+            var l, p = [],
+                f = [];
+            for (s = 0; s < n.length; s++) {
+                var c = n[s],
+                    h = e.tags[c],
+                    d = !0;
+                if (-1 !== f.indexOf(c) && (d = !1), h.throttle && "none" !== h.throttle && r(c) && (d = !1), h.paramMatch)
+                    for (var g = 0; g < h.paramMatch.length; g++) {
+                        var v = h.paramMatch[g],
+                            u = i[v.key];
+                        if (-1 !== v.key.indexOf("::")) {
+                            var _ = v.key.split("::");
+                            u = [];
+                            for (var y = 0; y < _.length; y++) u.push(i[_[y]] || "");
+                            u = u.join("::")
+                        }!0 === v.exists ? u || (d = !1) : !1 === v.exists ? u && (d = !1) : "avoid" === v.matcher ? Array.isArray(v.val) ? -1 !== v.val.indexOf(u) && (d = !1) : u === v.val && (d = !1) : "contains" === v.matcher ? -1 === (u || "").indexOf(v.val) && (d = !1) : "notContains" === v.matcher ? -1 !== (u || "").indexOf(v.val) && (d = !1) : Array.isArray(v.val) ? -1 === v.val.indexOf(u) && (d = !1) : u !== v.val && (d = !1)
+                    }
+                if (d && (f.push(c), "once_per_day" === h.throttle && t(c, !0, 1), "once_per_week" === h.throttle && t(c, !0, 7), "once_per_visitor" === h.throttle && t(c, !0, 365), "once_per_session" === h.throttle && t(c, !0), !h.logOnly)) {
+                    var m = h.tagHtml;
+                    if (h.replace)
+                        for (g = 0; g < h.replace.length; g++) {
+                            var w = h.replace[g];
+                            m = m.replace("[[" + w + "]]", "number" == typeof(l = i[w]) ? l : "boolean" == typeof l ? l : "string" != typeof l ? "" : a.test(l) && l === encodeURI(l) ? l : l.replace(/[^A-Za-z0-9_\- ]/g, ""))
+                        }
+                    p.push(m)
+                }
+            }
+            o(i, f);
+            for (s = p.length - 1; 0 < s; s--) {
+                g = Math.floor(Math.random() * (s + 1));
+                var x = p[s];
+                p[s] = p[g], p[g] = x
+            }
+            for (s = 0; s < p.length; s++) document.write(p[s])
+        };
+        module.exports()
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>
